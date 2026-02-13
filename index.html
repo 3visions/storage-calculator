@@ -8,20 +8,12 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-        }
-    </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState } = React;
-        const { Calculator, TrendingUp, DollarSign, CheckCircle, AlertCircle, PieChart, Mail, MessageCircle } = lucide;
 
         function StorageCalculator() {
             const [units, setUnits] = useState(200);
@@ -32,8 +24,9 @@
             const [loanAmount, setLoanAmount] = useState(1000000);
             const [interestRate, setInterestRate] = useState(7.5);
             const [loanTerm, setLoanTerm] = useState(25);
-            const [closingCosts, setClosingCosts] = useState(50000);
-            const [additionalState, setAdditionalState] = useState('default');
+            const [closingCosts, setClosingCosts] = useState(25000);
+            const [conventionalRate, setConventionalRate] = useState(7.5);
+            const [cdcRate, setCdcRate] = useState(6.5);
             const [activeTab, setActiveTab] = useState('analysis');
 
             // Step 1: Calculate NOI
@@ -54,6 +47,7 @@
             const monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
             const annualDebtService = monthlyPayment * 12;
             const dscr = noi / annualDebtService;
+            const dscrPasses = dscr >= 1.25;
 
             // Financial Calculations
             const downPayment = propertyValue * 0.10;
@@ -64,17 +58,18 @@
             const cdcLoan = propertyValue * 0.40;
             const equity = propertyValue * 0.10;
 
-            // Monthly payments for each loan
-            const conventionalMonthlyRate = interestRate / 100 / 12;
+            // Monthly payments
+            const conventionalMonthlyRate = conventionalRate / 100 / 12;
             const conventionalPayments = loanTerm * 12;
             const conventionalMonthlyPayment = conventionalLoan * (conventionalMonthlyRate * Math.pow(1 + conventionalMonthlyRate, conventionalPayments)) / (Math.pow(1 + conventionalMonthlyRate, conventionalPayments) - 1);
 
-            const cdcMonthlyRate = interestRate / 100 / 12;
+            const cdcMonthlyRate = cdcRate / 100 / 12;
             const cdcPayments = loanTerm * 12;
             const cdcMonthlyPayment = cdcLoan * (cdcMonthlyRate * Math.pow(1 + cdcMonthlyRate, cdcPayments)) / (Math.pow(1 + cdcMonthlyRate, cdcPayments) - 1);
 
             const totalMonthlyDebt = conventionalMonthlyPayment + cdcMonthlyPayment;
             const totalAnnualDebt = totalMonthlyDebt * 12;
+
             const annualCashFlow = noi - totalAnnualDebt;
             const cashOnCashReturn = (annualCashFlow / totalCashInvested) * 100;
             const roi = ((annualCashFlow + forcedEquity) / totalCashInvested) * 100;
@@ -93,122 +88,146 @@
             };
 
             return (
-                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-                    {/* Header */}
-                    <div className="bg-black/30 backdrop-blur-sm border-b border-white/10">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                                            <span className="text-white font-bold text-xl">3V</span>
-                                        </div>
-                                        <div>
-                                            <h1 className="text-2xl font-bold text-white">3 Visions Group</h1>
-                                            <p className="text-purple-300 text-sm">Self Storage Investment Specialists</p>
-                                        </div>
-                                    </div>
+                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+                    <div className="max-w-6xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-8">
+                            <div className="flex items-center justify-center gap-2 mb-4">
+                                <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg p-3 shadow-lg">
+                                    <div className="text-white font-bold text-2xl">3V</div>
                                 </div>
-                                <div className="flex gap-3">
-                                    <a href="tel:+1234567890" className="p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
-                                        <lucide-react.Phone className="w-5 h-5 text-white" />
-                                    </a>
-                                    <a href="mailto:info@3visionsgroup.com" className="p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
-                                        <lucide-react.Mail className="w-5 h-5 text-white" />
-                                    </a>
+                                <div className="text-left">
+                                    <div className="text-white font-bold text-xl">3 Visions Group</div>
+                                    <div className="text-slate-400 text-sm">Self Storage Investment Specialists</div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    {/* Main Content */}
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        {/* Title Section */}
-                        <div className="text-center mb-8">
-                            <h2 className="text-4xl font-bold text-white mb-2">Milwaukee Self-Storage Calculator</h2>
-                            <p className="text-purple-300 text-lg">Class-B Value-Add Deal Analyzer – 2026 Formula</p>
+                            <h1 className="text-4xl font-bold text-white mb-2">Milwaukee Self-Storage Calculator</h1>
+                            <p className="text-slate-300 text-lg">Class-B Value-Add Deal Analyzer – 2026 Formula</p>
                         </div>
 
-                        {/* Tabs */}
-                        <div className="flex gap-2 mb-6">
+                        {/* Summary Panel */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 shadow-lg">
+                                <div className="text-blue-100 text-sm mb-1">Net Operating Income</div>
+                                <div className="text-white text-2xl font-bold">{formatCurrency(noi)}</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 shadow-lg">
+                                <div className="text-purple-100 text-sm mb-1">Property Value</div>
+                                <div className="text-white text-2xl font-bold">{formatCurrency(propertyValue)}</div>
+                            </div>
+                            <div className={`bg-gradient-to-br rounded-lg p-4 shadow-lg ${
+                                cashOnCashReturn < 0 
+                                    ? 'from-red-500 to-red-600' 
+                                    : cashOnCashReturn <= 15 
+                                        ? 'from-orange-500 to-orange-600' 
+                                        : 'from-green-500 to-green-600'
+                            }`}>
+                                <div className="text-sm mb-1">Cash on Cash</div>
+                                <div className="text-white text-2xl font-bold">{cashOnCashReturn.toFixed(1)}%</div>
+                            </div>
+                            <div className={`bg-gradient-to-br ${dscrPasses ? 'from-emerald-500 to-emerald-600' : 'from-red-500 to-red-600'} rounded-lg p-4 shadow-lg`}>
+                                <div className="text-sm mb-1">DSCR</div>
+                                <div className="text-white text-2xl font-bold">{dscr.toFixed(2)}x</div>
+                            </div>
+                        </div>
+
+                        {/* Tab Navigation */}
+                        <div className="flex gap-2 mb-6 bg-slate-800 p-2 rounded-lg">
                             <button
                                 onClick={() => setActiveTab('analysis')}
-                                className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
+                                className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
                                     activeTab === 'analysis'
-                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                                        : 'bg-white/10 text-white/60 hover:bg-white/20'
+                                        ? 'bg-blue-500 text-white shadow-lg'
+                                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
                                 }`}
                             >
-                                Deal Analysis
+                                4-Step Analysis
                             </button>
                             <button
-                                onClick={() => setActiveTab('assumptions')}
-                                className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
-                                    activeTab === 'assumptions'
-                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                                        : 'bg-white/10 text-white/60 hover:bg-white/20'
+                                onClick={() => setActiveTab('financial')}
+                                className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
+                                    activeTab === 'financial'
+                                        ? 'bg-blue-500 text-white shadow-lg'
+                                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
                                 }`}
                             >
-                                Assumptions
+                                Financial Stack
                             </button>
                         </div>
 
-                        <div className="grid lg:grid-cols-2 gap-6">
-                            {/* Left Column - Inputs */}
-                            <div className="space-y-4">
-                                <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-                                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <Calculator className="w-5 h-5" />
-                                        Property Inputs
-                                    </h3>
-                                    
+                        {/* Analysis Tab */}
+                        {activeTab === 'analysis' && (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Step 1 */}
+                                <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+                                    <div className="bg-blue-500/20 border-l-4 border-blue-500 pl-4 py-2 mb-4">
+                                        <h2 className="text-2xl font-bold text-white">Step 1: The "Real" Income (NOI)</h2>
+                                    </div>
+
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-purple-200 mb-2">
-                                                Number of Units: {units}
-                                            </label>
+                                            <label className="block text-slate-300 mb-2">Total Units: {units}</label>
                                             <input
                                                 type="range"
                                                 min="50"
                                                 max="500"
                                                 value={units}
                                                 onChange={(e) => setUnits(Number(e.target.value))}
-                                                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                                                className="w-full"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-purple-200 mb-2">
-                                                Market Rent per Unit: ${marketRent}
-                                            </label>
+                                            <label className="block text-slate-300 mb-2">Market Rent per Unit (Monthly): ${marketRent}</label>
                                             <input
                                                 type="range"
                                                 min="50"
                                                 max="300"
                                                 value={marketRent}
                                                 onChange={(e) => setMarketRent(Number(e.target.value))}
-                                                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                                                className="w-full"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-purple-200 mb-2">
-                                                Expense Ratio: {expenseRatio}%
-                                            </label>
+                                            <label className="block text-slate-300 mb-2">Expense Ratio: {expenseRatio}% (Milwaukee standard: 35-40%)</label>
                                             <input
                                                 type="range"
                                                 min="20"
                                                 max="60"
                                                 value={expenseRatio}
                                                 onChange={(e) => setExpenseRatio(Number(e.target.value))}
-                                                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                                                className="w-full"
                                             />
                                         </div>
 
+                                        <div className="bg-slate-700 rounded-lg p-4 space-y-2">
+                                            <div className="flex justify-between text-slate-300">
+                                                <span>Gross Potential Income:</span>
+                                                <span className="font-semibold">{formatCurrency(grossPotentialIncome)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-slate-300">
+                                                <span>Operating Expenses:</span>
+                                                <span className="font-semibold text-red-400">-{formatCurrency(totalExpenses)}</span>
+                                            </div>
+                                            <div className="border-t border-slate-600 pt-2 flex justify-between">
+                                                <span className="text-white font-bold">Net Operating Income:</span>
+                                                <span className="text-2xl font-bold text-green-400">{formatCurrency(noi)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Step 2 */}
+                                <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+                                    <div className="bg-purple-500/20 border-l-4 border-purple-500 pl-4 py-2 mb-4">
+                                        <h2 className="text-2xl font-bold text-white">Step 2: What It's Worth</h2>
+                                    </div>
+
+                                    <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-purple-200 mb-2">
-                                                Cap Rate: {capRate.toFixed(1)}%
-                                            </label>
+                                            <label className="block text-slate-300 mb-2">Cap Rate: {capRate.toFixed(1)}%</label>
                                             <input
                                                 type="range"
                                                 min="4"
@@ -216,37 +235,69 @@
                                                 step="0.1"
                                                 value={capRate}
                                                 onChange={(e) => setCapRate(Number(e.target.value))}
-                                                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                                                className="w-full"
                                             />
                                         </div>
 
+                                        <div className="bg-slate-700 rounded-lg p-4">
+                                            <div className="text-slate-300 mb-2">Property Value Formula:</div>
+                                            <div className="text-lg text-white font-mono">
+                                                {formatCurrency(noi)} ÷ {capRate.toFixed(1)}% = {formatCurrency(propertyValue)}
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-purple-900/30 border border-purple-500/30 rounded-lg p-4 text-purple-200 text-sm">
+                                            <strong>Cap Rate = ROI on cash deal.</strong> Lower cap = higher price. Milwaukee Class-B: 7-9% is standard.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Step 3 */}
+                                <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+                                    <div className="bg-green-500/20 border-l-4 border-green-500 pl-4 py-2 mb-4">
+                                        <h2 className="text-2xl font-bold text-white">Step 3: Forced Appreciation</h2>
+                                    </div>
+
+                                    <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-purple-200 mb-2">
-                                                Rent Increase per Unit: ${rentIncrease}
-                                            </label>
+                                            <label className="block text-slate-300 mb-2">Rent Increase per Unit (Monthly): ${rentIncrease}</label>
                                             <input
                                                 type="range"
                                                 min="0"
                                                 max="50"
                                                 value={rentIncrease}
                                                 onChange={(e) => setRentIncrease(Number(e.target.value))}
-                                                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                                                className="w-full"
                                             />
+                                        </div>
+
+                                        <div className="bg-slate-700 rounded-lg p-4 space-y-2">
+                                            <div className="text-slate-300 text-sm">Added Annual Income:</div>
+                                            <div className="text-white text-lg font-semibold">{formatCurrency(addedAnnualIncome)}</div>
+                                            <div className="text-slate-400 text-xs">= {units} units × ${rentIncrease} × 12 months</div>
+
+                                            <div className="border-t border-slate-600 pt-2 mt-2">
+                                                <div className="text-slate-300 text-sm">Instant Equity Created:</div>
+                                                <div className="text-2xl font-bold text-green-400">{formatCurrency(forcedEquity)}</div>
+                                                <div className="text-slate-400 text-xs">= {formatCurrency(addedAnnualIncome)} ÷ {capRate.toFixed(1)}%</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-4 text-green-200 text-sm">
+                                            <strong>The Magic:</strong> Every $10/month rent increase = ~${Math.round(forcedEquity / (rentIncrease * units) * 10).toLocaleString()} in property value per unit!
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-                                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <DollarSign className="w-5 h-5" />
-                                        Financing Terms
-                                    </h3>
-                                    
+                                {/* Step 4 */}
+                                <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+                                    <div className="bg-amber-500/20 border-l-4 border-amber-500 pl-4 py-2 mb-4">
+                                        <h2 className="text-2xl font-bold text-white">Step 4: Can You Get Financing?</h2>
+                                    </div>
+
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-purple-200 mb-2">
-                                                Loan Amount: {formatCurrency(loanAmount)}
-                                            </label>
+                                            <label className="block text-slate-300 mb-2">Loan Amount: {formatCurrency(loanAmount)}</label>
                                             <input
                                                 type="range"
                                                 min="100000"
@@ -254,14 +305,12 @@
                                                 step="50000"
                                                 value={loanAmount}
                                                 onChange={(e) => setLoanAmount(Number(e.target.value))}
-                                                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                                                className="w-full"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-purple-200 mb-2">
-                                                Interest Rate: {interestRate.toFixed(1)}%
-                                            </label>
+                                            <label className="block text-slate-300 mb-2">Interest Rate: {interestRate.toFixed(1)}%</label>
                                             <input
                                                 type="range"
                                                 min="3"
@@ -269,152 +318,227 @@
                                                 step="0.1"
                                                 value={interestRate}
                                                 onChange={(e) => setInterestRate(Number(e.target.value))}
-                                                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                                                className="w-full"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-purple-200 mb-2">
-                                                Loan Term: {loanTerm} years
-                                            </label>
+                                            <label className="block text-slate-300 mb-2">Loan Term: {loanTerm} years</label>
                                             <input
                                                 type="range"
                                                 min="10"
                                                 max="30"
                                                 value={loanTerm}
                                                 onChange={(e) => setLoanTerm(Number(e.target.value))}
-                                                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                                                className="w-full"
+                                            />
+                                        </div>
+
+                                        <div className="bg-slate-700 rounded-lg p-4 space-y-2">
+                                            <div className="flex justify-between text-slate-300">
+                                                <span>Annual NOI:</span>
+                                                <span className="font-semibold">{formatCurrency(noi)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-slate-300">
+                                                <span>Annual Debt Service:</span>
+                                                <span className="font-semibold">{formatCurrency(annualDebtService)}</span>
+                                            </div>
+                                            <div className="border-t border-slate-600 pt-2 flex justify-between">
+                                                <span className="text-white font-bold">DSCR:</span>
+                                                <span className={`text-2xl font-bold ${dscrPasses ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {dscr.toFixed(2)}x
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className={`rounded-lg p-4 text-sm ${dscrPasses ? 'bg-green-900/30 border border-green-500/30 text-green-200' : 'bg-red-900/30 border border-red-500/30 text-red-200'}`}>
+                                            {dscrPasses ? (
+                                                <><strong>✓ Passes!</strong> DSCR above 1.25. Most lenders will approve.</>
+                                            ) : (
+                                                <><strong>✗ Too Low.</strong> Banks want 1.25x minimum. Increase NOI or reduce loan.</>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Financial Tab */}
+                        {activeTab === 'financial' && (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* SBA 504 Structure */}
+                                <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+                                    <h2 className="text-2xl font-bold text-white mb-4">SBA 504 Capital Stack</h2>
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-slate-300 mb-2">Conventional Rate: {conventionalRate.toFixed(1)}%</label>
+                                            <input
+                                                type="range"
+                                                min="3"
+                                                max="12"
+                                                step="0.1"
+                                                value={conventionalRate}
+                                                onChange={(e) => setConventionalRate(Number(e.target.value))}
+                                                className="w-full"
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-purple-200 mb-2">
-                                                Closing Costs: {formatCurrency(closingCosts)}
-                                            </label>
+                                            <label className="block text-slate-300 mb-2">CDC/SBA Rate: {cdcRate.toFixed(1)}%</label>
                                             <input
                                                 type="range"
-                                                min="10000"
-                                                max="200000"
-                                                step="5000"
-                                                value={closingCosts}
-                                                onChange={(e) => setClosingCosts(Number(e.target.value))}
-                                                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                                                min="3"
+                                                max="12"
+                                                step="0.1"
+                                                value={cdcRate}
+                                                onChange={(e) => setCdcRate(Number(e.target.value))}
+                                                className="w-full"
                                             />
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            {/* Right Column - Results */}
-                            <div className="space-y-4">
-                                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md rounded-xl p-6 border border-purple-300/30">
-                                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <TrendingUp className="w-5 h-5" />
-                                        Key Metrics
-                                    </h3>
-                                    
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg">
-                                            <span className="text-purple-200">Property Value</span>
-                                            <span className="text-white font-bold text-lg">{formatCurrency(propertyValue)}</span>
-                                        </div>
-
-                                        <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg">
-                                            <span className="text-purple-200">Annual NOI</span>
-                                            <span className="text-white font-bold text-lg">{formatCurrency(noi)}</span>
-                                        </div>
-
-                                        <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg">
-                                            <span className="text-purple-200">Forced Equity</span>
-                                            <span className="text-green-400 font-bold text-lg">{formatCurrency(forcedEquity)}</span>
-                                        </div>
-
-                                        <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg">
-                                            <span className="text-purple-200">DSCR</span>
-                                            <span className={`font-bold text-lg ${dscr >= 1.25 ? 'text-green-400' : 'text-yellow-400'}`}>
-                                                {dscr.toFixed(2)}x
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl p-6 border border-green-300/30">
-                                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <PieChart className="w-5 h-5" />
-                                        Returns Analysis
-                                    </h3>
-                                    
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg">
-                                            <span className="text-purple-200">Total Cash Invested</span>
-                                            <span className="text-white font-bold text-lg">{formatCurrency(totalCashInvested)}</span>
-                                        </div>
-
-                                        <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg">
-                                            <span className="text-purple-200">Annual Cash Flow</span>
-                                            <span className="text-white font-bold text-lg">{formatCurrency(annualCashFlow)}</span>
-                                        </div>
-
-                                        <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg">
-                                            <span className="text-purple-200">Cash-on-Cash Return</span>
-                                            <span className="text-green-400 font-bold text-xl">{formatPercent(cashOnCashReturn)}</span>
-                                        </div>
-
-                                        <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
-                                            <span className="text-white font-semibold">Total ROI (w/ Equity)</span>
-                                            <span className="text-white font-bold text-2xl">{formatPercent(roi)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-                                    <h3 className="text-xl font-bold text-white mb-4">SBA 504 Capital Stack</h3>
-                                    
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-purple-200">Conventional Loan (50%)</span>
-                                            <span className="text-white font-semibold">{formatCurrency(conventionalLoan)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-purple-200">CDC/SBA Loan (40%)</span>
-                                            <span className="text-white font-semibold">{formatCurrency(cdcLoan)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-purple-200">Equity (10%)</span>
-                                            <span className="text-white font-semibold">{formatCurrency(equity)}</span>
-                                        </div>
-                                        <div className="pt-3 border-t border-white/20">
+                                        <div className="bg-slate-700 rounded-lg p-4 space-y-3">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-purple-200 font-semibold">Total Monthly Debt</span>
-                                                <span className="text-white font-bold">{formatCurrency(totalMonthlyDebt)}</span>
+                                                <span className="text-slate-300">Conventional Loan (50%):</span>
+                                                <span className="text-white font-bold">{formatCurrency(conventionalLoan)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-slate-300">CDC/SBA Loan (40%):</span>
+                                                <span className="text-white font-bold">{formatCurrency(cdcLoan)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-slate-300">Your Equity (10%):</span>
+                                                <span className="text-white font-bold">{formatCurrency(equity)}</span>
+                                            </div>
+                                            <div className="border-t border-slate-600 pt-2 flex justify-between items-center">
+                                                <span className="text-white font-bold">Total Property Value:</span>
+                                                <span className="text-2xl font-bold text-blue-400">{formatCurrency(propertyValue)}</span>
                                             </div>
                                         </div>
+
+                                        <div className="bg-slate-700 rounded-lg p-4 space-y-2">
+                                            <div className="text-slate-300 text-sm font-semibold mb-2">Monthly Debt Payments:</div>
+                                            <div className="flex justify-between items-center text-white mb-2">
+                                                <span className="text-sm">Conventional Payment:</span>
+                                                <span className="font-semibold">{formatCurrency(conventionalMonthlyPayment)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-white mb-2">
+                                                <span className="text-sm">CDC/SBA Payment:</span>
+                                                <span className="font-semibold">{formatCurrency(cdcMonthlyPayment)}</span>
+                                            </div>
+                                            <div className="border-t border-slate-600 pt-2 flex justify-between items-center text-white">
+                                                <span className="font-bold">Total Monthly:</span>
+                                                <span className="text-xl font-bold text-amber-400">{formatCurrency(totalMonthlyDebt)}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-4 text-blue-200 text-sm">
+                                            <strong>The "Magic" of SBA 504:</strong> Only 10% down means you keep more cash for value-add improvements!
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Returns Analysis */}
+                                <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+                                    <h2 className="text-2xl font-bold text-white mb-4">Returns Analysis</h2>
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-slate-300 mb-2">Closing Costs & Fees</label>
+                                            <input
+                                                type="number"
+                                                value={closingCosts}
+                                                onChange={(e) => setClosingCosts(Number(e.target.value))}
+                                                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white"
+                                            />
+                                        </div>
+
+                                        <div className="bg-slate-700 rounded-lg p-4 space-y-3">
+                                            <div className="text-slate-300 text-sm font-semibold mb-2">Cash Investment:</div>
+                                            <div className="flex justify-between text-slate-300">
+                                                <span>Down Payment (10%):</span>
+                                                <span className="font-semibold">{formatCurrency(downPayment)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-slate-300">
+                                                <span>Closing Costs:</span>
+                                                <span className="font-semibold">{formatCurrency(closingCosts)}</span>
+                                            </div>
+                                            <div className="border-t border-slate-600 pt-2 flex justify-between text-white">
+                                                <span className="font-bold">Total Cash Invested:</span>
+                                                <span className="font-bold text-yellow-400">{formatCurrency(totalCashInvested)}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-slate-700 rounded-lg p-4 space-y-3">
+                                            <div className="text-slate-300 text-sm font-semibold mb-2">Annual Returns:</div>
+                                            <div className="flex justify-between text-slate-300">
+                                                <span>NOI:</span>
+                                                <span className="font-semibold">{formatCurrency(noi)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-slate-300">
+                                                <span>Total Debt Service:</span>
+                                                <span className="font-semibold text-red-400">-{formatCurrency(totalAnnualDebt)}</span>
+                                            </div>
+                                            <div className="border-t border-slate-600 pt-2 flex justify-between text-white">
+                                                <span className="font-bold">Annual Cash Flow:</span>
+                                                <span className={`font-bold ${annualCashFlow >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {formatCurrency(annualCashFlow)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className={`bg-gradient-to-br rounded-lg p-4 text-center ${
+                                                cashOnCashReturn < 0 
+                                                    ? 'from-red-600 to-red-500' 
+                                                    : cashOnCashReturn <= 15 
+                                                        ? 'from-orange-600 to-orange-500' 
+                                                        : 'from-green-600 to-green-500'
+                                            }`}>
+                                                <div className="text-sm mb-1">Cash on Cash</div>
+                                                <div className="text-white text-3xl font-bold">{cashOnCashReturn.toFixed(1)}%</div>
+                                            </div>
+
+                                            <div className="bg-gradient-to-br from-blue-600 to-blue-500 rounded-lg p-4 text-center">
+                                                <div className="text-blue-100 text-sm mb-1">Total ROI (Year 1)</div>
+                                                <div className="text-white text-3xl font-bold">{roi.toFixed(1)}%</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-4 text-green-200 text-sm">
+                                            <strong>Forced Equity Impact:</strong> Your ${rentIncrease}/unit rent increase creates {formatCurrency(forcedEquity)} in instant equity!
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
-                        {/* Contact CTA */}
-                        <div className="mt-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-8 text-center">
-                            <h3 className="text-2xl font-bold text-white mb-4">Ready to Explore This Opportunity?</h3>
-                            <p className="text-white/90 mb-6">Contact 3 Visions Group to discuss your self-storage investment strategy</p>
-                            <div className="flex gap-4 justify-center">
-                                <button className="px-6 py-3 bg-white text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition-colors">
-                                    Schedule Consultation
-                                </button>
-                                <button className="px-6 py-3 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors">
-                                    Download Report
-                                </button>
+                        {/* Contact Section */}
+                        <div className="mt-8 bg-slate-800 rounded-xl p-6 border border-slate-700">
+                            <h3 className="text-white text-xl font-bold text-center mb-4">Ready to Discuss Your Deal?</h3>
+                            <p className="text-slate-300 text-center mb-6">Get expert guidance on your Milwaukee self-storage investment</p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <a
+                                    href="mailto:ohad@3visionsgroup.com"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors text-center"
+                                >
+                                    📧 Email Ohad
+                                </a>
+                                <a
+                                    href="https://wa.me/12403704580"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors text-center"
+                                >
+                                    💬 WhatsApp
+                                </a>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Footer */}
-                    <div className="bg-black/30 backdrop-blur-sm border-t border-white/10 mt-12">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                            <p className="text-center text-purple-300 text-sm">
-                                © 2026 3 Visions Group. Professional self-storage investment analysis.
-                            </p>
+                        {/* Footer */}
+                        <div className="mt-6 text-center text-slate-400 text-sm">
+                            <p>Milwaukee MSA – Class-B Value-Add – 2026 Formula</p>
+                            <p className="mt-1">© 2026 3 Visions Group. All rights reserved.</p>
                         </div>
                     </div>
                 </div>
