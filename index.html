@@ -1,0 +1,600 @@
+import React, { useState } from 'react';
+import { Calculator, TrendingUp, DollarSign, CheckCircle, AlertCircle, PieChart, Mail, MessageCircle } from 'lucide-react';
+
+export default function StorageCalculator() {
+  const [units, setUnits] = useState(200);
+  const [marketRent, setMarketRent] = useState(150);
+  const [expenseRatio, setExpenseRatio] = useState(40);
+  const [capRate, setCapRate] = useState(7.0);
+  const [rentIncrease, setRentIncrease] = useState(10);
+  const [loanAmount, setLoanAmount] = useState(1000000);
+  const [interestRate, setInterestRate] = useState(7.5);
+  const [loanTerm, setLoanTerm] = useState(25);
+  const [closingCosts, setClosingCosts] = useState(25000);
+  const [conventionalRate, setConventionalRate] = useState(7.5);
+  const [cdcRate, setCdcRate] = useState(6.5);
+  const [activeTab, setActiveTab] = useState('analysis');
+
+  // Step 1: Calculate NOI
+  const grossPotentialIncome = units * marketRent * 12;
+  const totalExpenses = grossPotentialIncome * (expenseRatio / 100);
+  const noi = grossPotentialIncome - totalExpenses;
+
+  // Step 2: Calculate Property Value
+  const propertyValue = noi / (capRate / 100);
+
+  // Step 3: Calculate Forced Appreciation
+  const addedAnnualIncome = units * rentIncrease * 12;
+  const forcedEquity = addedAnnualIncome / (capRate / 100);
+
+  // Step 4: Calculate DSCR
+  const monthlyRate = interestRate / 100 / 12;
+  const numPayments = loanTerm * 12;
+  const monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+  const annualDebtService = monthlyPayment * 12;
+  const dscr = noi / annualDebtService;
+  const dscrPasses = dscr >= 1.25;
+
+  // Financial Calculations
+  const downPayment = propertyValue * 0.10; // 10% for SBA 504
+  const totalCashInvested = downPayment + closingCosts;
+  
+  // SBA 504 Capital Stack with separate debt calculations
+  const conventionalLoan = propertyValue * 0.50; // 50% bank
+  const cdcLoan = propertyValue * 0.40; // 40% CDC/SBA
+  const equity = propertyValue * 0.10; // 10% down
+  
+  // Calculate monthly payments for each loan
+  const conventionalMonthlyRate = conventionalRate / 100 / 12;
+  const conventionalPayments = loanTerm * 12;
+  const conventionalMonthlyPayment = conventionalLoan * (conventionalMonthlyRate * Math.pow(1 + conventionalMonthlyRate, conventionalPayments)) / (Math.pow(1 + conventionalMonthlyRate, conventionalPayments) - 1);
+  
+  const cdcMonthlyRate = cdcRate / 100 / 12;
+  const cdcPayments = loanTerm * 12;
+  const cdcMonthlyPayment = cdcLoan * (cdcMonthlyRate * Math.pow(1 + cdcMonthlyRate, cdcPayments)) / (Math.pow(1 + cdcMonthlyRate, cdcPayments) - 1);
+  
+  const totalMonthlyDebt = conventionalMonthlyPayment + cdcMonthlyPayment;
+  const totalAnnualDebt = totalMonthlyDebt * 12;
+  
+  const annualCashFlow = noi - totalAnnualDebt;
+  const cashOnCashReturn = (annualCashFlow / totalCashInvested) * 100;
+  const roi = ((annualCashFlow + forcedEquity) / totalCashInvested) * 100;
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatPercent = (value) => {
+    return value.toFixed(2) + '%';
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          {/* Logo */}
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg p-3 shadow-lg">
+              <div className="text-white font-bold text-2xl">3V</div>
+            </div>
+            <div className="text-left">
+              <div className="text-white font-bold text-xl">3 Visions Group</div>
+              <div className="text-slate-400 text-sm">Self Storage Investment Specialists</div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <Calculator className="w-10 h-10 text-blue-400" />
+            <h1 className="text-4xl font-bold text-white">Milwaukee Self-Storage Calculator</h1>
+          </div>
+          <p className="text-slate-300 text-lg">Class-B Value-Add Deal Analyzer • 2026 Formula</p>
+        </div>
+
+        {/* Summary Panel */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 shadow-lg">
+            <div className="text-blue-100 text-sm mb-1">Net Operating Income</div>
+            <div className="text-white text-2xl font-bold">{formatCurrency(noi)}</div>
+          </div>
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 shadow-lg">
+            <div className="text-purple-100 text-sm mb-1">Property Value</div>
+            <div className="text-white text-2xl font-bold">{formatCurrency(propertyValue)}</div>
+          </div>
+          <div className={`bg-gradient-to-br rounded-lg p-4 shadow-lg ${
+            cashOnCashReturn < 0 
+              ? 'from-red-500 to-red-600' 
+              : cashOnCashReturn <= 15 
+                ? 'from-orange-500 to-orange-600' 
+                : 'from-green-500 to-green-600'
+          }`}>
+            <div className={`text-sm mb-1 ${
+              cashOnCashReturn < 0 
+                ? 'text-red-100' 
+                : cashOnCashReturn <= 15 
+                  ? 'text-orange-100' 
+                  : 'text-green-100'
+            }`}>Cash on Cash</div>
+            <div className="text-white text-2xl font-bold">{cashOnCashReturn.toFixed(1)}%</div>
+          </div>
+          <div className={`bg-gradient-to-br ${dscrPasses ? 'from-emerald-500 to-emerald-600' : 'from-red-500 to-red-600'} rounded-lg p-4 shadow-lg`}>
+            <div className={`${dscrPasses ? 'text-emerald-100' : 'text-red-100'} text-sm mb-1`}>DSCR</div>
+            <div className="text-white text-2xl font-bold">{dscr.toFixed(2)}x</div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex gap-2 mb-6 bg-slate-800 p-2 rounded-lg">
+          <button
+            onClick={() => setActiveTab('analysis')}
+            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
+              activeTab === 'analysis'
+                ? 'bg-blue-500 text-white shadow-lg'
+                : 'text-slate-400 hover:text-white hover:bg-slate-700'
+            }`}
+          >
+            4-Step Analysis
+          </button>
+          <button
+            onClick={() => setActiveTab('financial')}
+            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
+              activeTab === 'financial'
+                ? 'bg-blue-500 text-white shadow-lg'
+                : 'text-slate-400 hover:text-white hover:bg-slate-700'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <PieChart className="w-5 h-5" />
+              Financial Stack
+            </div>
+          </button>
+        </div>
+
+        {/* Analysis Tab */}
+        {activeTab === 'analysis' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Step 1: The "Real" Income (NOI) */}
+            <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
+                The "Real" Income (NOI)
+              </h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-slate-300 mb-2">Total Units</label>
+                  <input
+                    type="number"
+                    value={units}
+                    onChange={(e) => setUnits(Number(e.target.value))}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 mb-2">Market Rent per Unit (Monthly)</label>
+                  <input
+                    type="number"
+                    value={marketRent}
+                    onChange={(e) => setMarketRent(Number(e.target.value))}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 mb-2">
+                    Expense Ratio: {expenseRatio}%
+                    <span className="text-xs text-slate-400 ml-2">(Milwaukee standard: 35-40%)</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="30"
+                    max="50"
+                    value={expenseRatio}
+                    onChange={(e) => setExpenseRatio(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="bg-slate-700 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between text-slate-300">
+                    <span>Gross Potential Income:</span>
+                    <span className="font-semibold">{formatCurrency(grossPotentialIncome)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-300">
+                    <span>Total Expenses ({expenseRatio}%):</span>
+                    <span className="font-semibold text-red-400">-{formatCurrency(totalExpenses)}</span>
+                  </div>
+                  <div className="border-t border-slate-600 pt-2 flex justify-between text-white">
+                    <span className="font-bold">Net Operating Income:</span>
+                    <span className="font-bold text-blue-400">{formatCurrency(noi)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2: The Valuation */}
+            <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="bg-purple-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
+                The Valuation (Cap Rate)
+              </h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-slate-300 mb-2">
+                    Cap Rate: {formatPercent(capRate)}
+                    <span className="text-xs text-slate-400 ml-2">(Milwaukee Class-B: 7.0-7.5%)</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="10"
+                    step="0.5"
+                    value={capRate}
+                    onChange={(e) => setCapRate(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="bg-slate-700 rounded-lg p-4">
+                  <div className="text-slate-300 text-sm mb-2">Formula: Value = NOI / Cap Rate</div>
+                  <div className="text-slate-300 text-sm mb-3">
+                    {formatCurrency(noi)} ÷ {formatPercent(capRate)}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white font-bold text-lg">Property Value:</span>
+                    <span className="text-purple-400 font-bold text-2xl">{formatCurrency(propertyValue)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3: The Flipper's Upside */}
+            <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">3</span>
+                The "Flipper's Upside"
+              </h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-slate-300 mb-2">Rent Increase per Unit (Monthly)</label>
+                  <input
+                    type="number"
+                    value={rentIncrease}
+                    onChange={(e) => setRentIncrease(Number(e.target.value))}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-green-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="bg-slate-700 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between text-slate-300">
+                    <span>Added Annual Income:</span>
+                    <span className="font-semibold">{formatCurrency(addedAnnualIncome)}</span>
+                  </div>
+                  <div className="text-slate-400 text-xs mb-2">
+                    {units} units × ${rentIncrease} × 12 months
+                  </div>
+                  <div className="border-t border-slate-600 pt-2 flex justify-between items-center">
+                    <span className="text-white font-bold flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-green-400" />
+                      Forced Equity:
+                    </span>
+                    <span className="text-green-400 font-bold text-xl">{formatCurrency(forcedEquity)}</span>
+                  </div>
+                  <div className="text-slate-400 text-xs">
+                    {formatCurrency(addedAnnualIncome)} ÷ {formatPercent(capRate)}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 4: The DSCR Check */}
+            <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="bg-amber-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">4</span>
+                The DSCR Check (Bankability)
+              </h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-slate-300 mb-2">Loan Amount</label>
+                  <input
+                    type="number"
+                    value={loanAmount}
+                    onChange={(e) => setLoanAmount(Number(e.target.value))}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 mb-2">Interest Rate: {formatPercent(interestRate)}</label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="12"
+                    step="0.25"
+                    value={interestRate}
+                    onChange={(e) => setInterestRate(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 mb-2">Loan Term (Years)</label>
+                  <input
+                    type="number"
+                    value={loanTerm}
+                    onChange={(e) => setLoanTerm(Number(e.target.value))}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="bg-slate-700 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between text-slate-300">
+                    <span>Annual Debt Service:</span>
+                    <span className="font-semibold">{formatCurrency(annualDebtService)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-300">
+                    <span>NOI:</span>
+                    <span className="font-semibold">{formatCurrency(noi)}</span>
+                  </div>
+                  <div className="border-t border-slate-600 pt-2">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-white font-bold">DSCR:</span>
+                      <span className={`font-bold text-2xl ${dscrPasses ? 'text-green-400' : 'text-red-400'}`}>
+                        {dscr.toFixed(2)}x
+                      </span>
+                    </div>
+                    <div className={`flex items-center gap-2 p-3 rounded-lg ${dscrPasses ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                      {dscrPasses ? (
+                        <>
+                          <CheckCircle className="w-5 h-5" />
+                          <span className="font-semibold">Deal passes SBA 504 requirement (≥1.25x)</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="w-5 h-5" />
+                          <span className="font-semibold">Deal below 1.25x - negotiate price down</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Financial Tab */}
+        {activeTab === 'financial' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* SBA 504 Capital Stack */}
+            <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <PieChart className="w-6 h-6 text-blue-400" />
+                SBA 504 Capital Stack
+              </h2>
+              
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg p-4">
+                  <div className="flex justify-between items-center text-white mb-1">
+                    <span className="font-semibold">Conventional Bank (50%)</span>
+                    <span className="text-xl font-bold">{formatCurrency(conventionalLoan)}</span>
+                  </div>
+                  <div className="text-blue-100 text-sm mb-3">First mortgage from local Milwaukee bank</div>
+                  <div className="bg-blue-700/50 rounded p-2">
+                    <label className="block text-blue-100 text-xs mb-1">Interest Rate: {formatPercent(conventionalRate)}</label>
+                    <input
+                      type="range"
+                      min="5"
+                      max="12"
+                      step="0.25"
+                      value={conventionalRate}
+                      onChange={(e) => setConventionalRate(Number(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="text-blue-100 text-xs mt-1">Monthly: {formatCurrency(conventionalMonthlyPayment)}</div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-600 to-purple-500 rounded-lg p-4">
+                  <div className="flex justify-between items-center text-white mb-1">
+                    <span className="font-semibold">CDC/SBA Loan (40%)</span>
+                    <span className="text-xl font-bold">{formatCurrency(cdcLoan)}</span>
+                  </div>
+                  <div className="text-purple-100 text-sm mb-3">Second mortgage, SBA-backed, 20-25 year fixed</div>
+                  <div className="bg-purple-700/50 rounded p-2">
+                    <label className="block text-purple-100 text-xs mb-1">Interest Rate: {formatPercent(cdcRate)}</label>
+                    <input
+                      type="range"
+                      min="5"
+                      max="12"
+                      step="0.25"
+                      value={cdcRate}
+                      onChange={(e) => setCdcRate(Number(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="text-purple-100 text-xs mt-1">Monthly: {formatCurrency(cdcMonthlyPayment)}</div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-lg p-4">
+                  <div className="flex justify-between items-center text-white mb-1">
+                    <span className="font-semibold">Your Down Payment (10%)</span>
+                    <span className="text-xl font-bold">{formatCurrency(equity)}</span>
+                  </div>
+                  <div className="text-green-100 text-sm">Cash required at closing (vs 20-30% conventional)</div>
+                </div>
+
+                <div className="bg-slate-700 rounded-lg p-4">
+                  <div className="text-slate-300 text-sm mb-2">Total Monthly Debt Service:</div>
+                  <div className="flex justify-between items-center text-white mb-1">
+                    <span className="text-sm">Conventional Payment:</span>
+                    <span className="font-semibold">{formatCurrency(conventionalMonthlyPayment)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-white mb-2">
+                    <span className="text-sm">CDC/SBA Payment:</span>
+                    <span className="font-semibold">{formatCurrency(cdcMonthlyPayment)}</span>
+                  </div>
+                  <div className="border-t border-slate-600 pt-2 flex justify-between items-center text-white">
+                    <span className="font-bold">Total Monthly:</span>
+                    <span className="text-xl font-bold text-amber-400">{formatCurrency(totalMonthlyDebt)}</span>
+                  </div>
+                  <div className="text-slate-400 text-xs mt-1">
+                    Annual: {formatCurrency(totalAnnualDebt)} ({loanTerm} year term)
+                  </div>
+                </div>
+
+                <div className="bg-slate-700 rounded-lg p-4 border-t-2 border-blue-400">
+                  <div className="flex justify-between items-center text-white">
+                    <span className="text-lg font-bold">Total Property Value:</span>
+                    <span className="text-2xl font-bold text-blue-400">{formatCurrency(propertyValue)}</span>
+                  </div>
+                </div>
+
+                <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-4 text-blue-200 text-sm">
+                  <strong>The "Magic" of SBA 504:</strong> Only 10% down means you keep more cash for value-add improvements instead of tying it up in the purchase.
+                </div>
+              </div>
+            </div>
+
+            {/* ROI & Cash Flow Analysis */}
+            <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <DollarSign className="w-6 h-6 text-green-400" />
+                Returns Analysis
+              </h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-slate-300 mb-2">Closing Costs & Fees</label>
+                  <input
+                    type="number"
+                    value={closingCosts}
+                    onChange={(e) => setClosingCosts(Number(e.target.value))}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-green-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="bg-slate-700 rounded-lg p-4 space-y-3">
+                  <div className="text-slate-300 text-sm font-semibold mb-2">Cash Investment Breakdown:</div>
+                  <div className="flex justify-between text-slate-300">
+                    <span>Down Payment (10%):</span>
+                    <span className="font-semibold">{formatCurrency(downPayment)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-300">
+                    <span>Closing Costs:</span>
+                    <span className="font-semibold">{formatCurrency(closingCosts)}</span>
+                  </div>
+                  <div className="border-t border-slate-600 pt-2 flex justify-between text-white">
+                    <span className="font-bold">Total Cash Invested:</span>
+                    <span className="font-bold text-yellow-400">{formatCurrency(totalCashInvested)}</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-700 rounded-lg p-4 space-y-3">
+                  <div className="text-slate-300 text-sm font-semibold mb-2">Annual Returns:</div>
+                  <div className="flex justify-between text-slate-300">
+                    <span>NOI:</span>
+                    <span className="font-semibold">{formatCurrency(noi)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-300">
+                    <span>Total Debt Service:</span>
+                    <span className="font-semibold text-red-400">-{formatCurrency(totalAnnualDebt)}</span>
+                  </div>
+                  <div className="text-slate-400 text-xs pl-4">
+                    <div>Conventional: {formatCurrency(conventionalMonthlyPayment * 12)}/yr</div>
+                    <div>CDC/SBA: {formatCurrency(cdcMonthlyPayment * 12)}/yr</div>
+                  </div>
+                  <div className="border-t border-slate-600 pt-2 flex justify-between text-white">
+                    <span className="font-bold">Annual Cash Flow:</span>
+                    <span className={`font-bold ${annualCashFlow >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {formatCurrency(annualCashFlow)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`bg-gradient-to-br rounded-lg p-4 text-center ${
+                    cashOnCashReturn < 0 
+                      ? 'from-red-600 to-red-500' 
+                      : cashOnCashReturn <= 15 
+                        ? 'from-orange-600 to-orange-500' 
+                        : 'from-green-600 to-green-500'
+                  }`}>
+                    <div className={`text-sm mb-1 ${
+                      cashOnCashReturn < 0 
+                        ? 'text-red-100' 
+                        : cashOnCashReturn <= 15 
+                          ? 'text-orange-100' 
+                          : 'text-green-100'
+                    }`}>Cash on Cash Return</div>
+                    <div className="text-white text-3xl font-bold">{cashOnCashReturn.toFixed(1)}%</div>
+                    <div className={`text-xs mt-1 ${
+                      cashOnCashReturn < 0 
+                        ? 'text-red-100' 
+                        : cashOnCashReturn <= 15 
+                          ? 'text-orange-100' 
+                          : 'text-green-100'
+                    }`}>Annual Cash Flow / Cash Invested</div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-blue-600 to-blue-500 rounded-lg p-4 text-center">
+                    <div className="text-blue-100 text-sm mb-1">Total ROI (Year 1)</div>
+                    <div className="text-white text-3xl font-bold">{roi.toFixed(1)}%</div>
+                    <div className="text-blue-100 text-xs mt-1">Cash Flow + Forced Equity</div>
+                  </div>
+                </div>
+
+                <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-4 text-green-200 text-sm">
+                  <strong>Forced Equity Impact:</strong> Your {formatCurrency(rentIncrease)} rent increase creates {formatCurrency(forcedEquity)} in instant equity, dramatically boosting Year 1 ROI.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="mt-8 space-y-6">
+          {/* Contact Section */}
+          <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+            <h3 className="text-white text-xl font-bold text-center mb-4">Ready to Discuss Your Deal?</h3>
+            <p className="text-slate-300 text-center mb-6">Get expert guidance on your Milwaukee self-storage investment</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="mailto:ohad@3visionsgroup.com"
+                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors shadow-lg"
+              >
+                <Mail className="w-5 h-5" />
+                Email Ohad
+              </a>
+              <a
+                href="https://wa.me/12403704580"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors shadow-lg"
+              >
+                <MessageCircle className="w-5 h-5" />
+                WhatsApp
+              </a>
+            </div>
+          </div>
+          
+          {/* Market Info */}
+          <div className="text-center text-slate-400 text-sm">
+            <p>Milwaukee MSA • Class-B Value-Add • 2026 Formula</p>
+            <p className="mt-1">West Allis / Brookfield Market Standards</p>
+            <p className="mt-2 text-slate-500">© 2026 3 Visions Group. All rights reserved.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
